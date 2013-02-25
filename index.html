@@ -1,0 +1,197 @@
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=1024, user-scalable=no">
+    
+
+
+    <link rel="stylesheet" href="css/bootstrap.css" />
+
+
+<style>
+	.node {
+  border: solid 1px white;
+  font: 16px sans-serif;
+  line-height: 12px;
+  overflow: hidden;
+  position: absolute;
+  text-indent: 2px;
+}
+
+input.numInput{
+height:30px;
+}
+
+</style>
+
+<title>Parallel</title>
+<div class="row-fluid">
+  <div class="span4">
+data
+  <form><div class="row-fluid">
+<textarea rows="15" class="span8" id="textStuff">Put some text here</textarea></div>
+<div class="row-fluid">
+<div class="input-prepend ">
+<span class="add-on span8">Visualize with:</span>
+<select id="searchType" class="span16">
+	<option value="words">
+		words
+	</option>
+<option value="letters">letters</option>
+
+</select>
+ 
+</div></div><div class="row-fluid">
+<div class="input-prepend">
+  <span class="add-on span6">stop words</span>
+<textarea rows="1" class="span12" id="StopWords">a, about, above, above, across, after, afterwards, again, against, all, almost, alone, along, already, also, although, always, am, among, amongst, amoungst, amount, an, and, another, any, anyhow, anyone, anything, anyway, anywhere, are, around, as, at, back, be, became, because, become, becomes, becoming, been, before, beforehand, behind, being, below, beside, besides, between, beyond, bill, both, bottom, but, by, call, can, cannot, cant, co, con, could, couldnt, cry, de, describe, detail, do, done, down, due, during, each, eg, eight, either, eleven, else, elsewhere, empty, enough, etc, even, ever, every, everyone, everything, everywhere, except, few, fifteen, fify, fill, find, fire, first, five, for, former, formerly, forty, found, four, from, front, full, further, get, give, go, had, has, hasnt, have, he, hence, her, here, hereafter, hereby, herein, hereupon, hers, herself, him, himself, his, how, however, hundred, ie, if, in, inc, indeed, interest, into, is, it, its, itself, keep, last, latter, latterly, least, less, ltd, made, many, may, me, meanwhile, might, mill, mine, more, moreover, most, mostly, move, much, must, my, myself, name, namely, neither, never, nevertheless, next, nine, no, nobody, none, noone, nor, not, nothing, now, nowhere, of, off, often, on, once, one, only, onto, or, other, others, otherwise, our, ours, ourselves, out, over, own, part, per, perhaps, please, put, rather, re, same, see, seem, seemed, seeming, seems, serious, several, she, should, show, side, since, sincere, six, sixty, so, some, somehow, someone, something, sometime, sometimes, somewhere, still, such, system, take, ten, than, that, the, their, them, themselves, then, thence, there, thereafter, thereby, therefore, therein, thereupon, these, they, thickv, thin, third, this, those, though, three, through, throughout, thru, thus, to, together, too, top, toward, towards, twelve, twenty, two, un, under, until, up, upon, us, very, via, was, we, well, were, what, whatever, when, whence, whenever, where, whereafter, whereas, whereby, wherein, whereupon, wherever, whether, which, while, whither, who, whoever, whole, whom, whose, why, will, with, within, without, would, yet, you, your, yours, yourself, yourselves, the</textarea>
+</div></div><div class="row-fluid">
+<div class="input-prepend">
+<span class="add-on">Prefill with:</span>
+<select id="prefill">
+	<option value="">
+		nothing
+	</option>
+<option value="mobydick.txt">Moby Dick</option>
+<option value="donquixote.english.txt">Don Quixote (English)</option>
+<option value="donquixote.spanish.txt">Don Quixote (Spanish)</option>
+<option value="firstfolio.txt">Shakespeare's First Folio</option>
+	<option value="bootstrap.js">bootstrap.js</option>
+	<option value="css/bootstrap.css">bootstrap.css</option>
+	<option value="parallel.js">parallel.js</option>
+</select>
+ 
+</div></div><div class="row-fluid">
+<div class="input-prepend">
+<span class="add-on">Minimum Occurences:</span>
+  <input class="numInput" type="number" name="quantity" value="200" step="50" id="MinOcc"/>
+
+</div></div><div class="row-fluid">
+<div class="input-prepend input-append">
+<span class="add-on">Cores:</span>
+  <input class="numInput"  type="number" name="quantity" min="1" max="10" value="2" id="numCores"/>
+ <button class="btn btn-success" type="button" id="goButton">Make a Chart</button>
+</div>
+	
+</div></div>
+</form>
+  <div class="span8" id="tree" style="position: relative;"></div>
+</div>
+
+
+<script src="https://raw.github.com/mbostock/d3/master/lib/colorbrewer/colorbrewer.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="bootstrap.js"></script>
+<script src="http://underscorejs.org/underscore-min.js"></script>
+<script src="https://raw.github.com/adambom/parallel.js/master/parallel.min.js"></script>
+
+
+<script>
+function chunk(a,n){
+	var amount = Math.ceil(a.length/n);
+	var out =[];
+	var start = 0;
+	var end = amount;
+	while(start<a.length){
+		end=end>a.length?a.length:end
+		out.push(a.slice(start,end));
+		start = end;
+		end = start + amount;
+	}
+	return out;
+}
+
+var letters= function(w){
+	var out = {};
+	var letterz = w.toLowerCase().split("");
+	letterz.forEach(function(l){
+		if(l in out){
+			out[l]++;
+		}else{
+			out[l]=1;
+		}
+	});
+	return out;
+};
+var words= function(w){
+	var out = {};
+	var letters = w.toLowerCase().replace(/[^a-z0-9 ]/g,"").split(" ");
+	letters.forEach(function(l){
+		if(l in out){
+			out[l]++;
+		}else{
+			out[l]=1;
+		}
+	});
+	return out;
+};
+function red(a,b){
+	var out = {};
+	[a,b].forEach(function(c){
+		for(var key in c){
+			if(key in out){
+				out[key]+=c[key];
+			}else{
+				out[key]=c[key];
+			}
+		}
+	});
+	return out;
+}
+function calculate(text,num){
+var d = Parallel.mapreduce($("#searchType").val()==="words"?words:letters, red, chunk(text,num));
+ 
+// Fetch the distributed process and get the reduced value when complete
+d.fetch(function (result) {
+    console.log(result);
+	word = result;
+	makeTree(result);
+});
+}
+$("#goButton").on("click",function(){
+calculate($("#textStuff").val(),parseInt($("#numCores").val(),10));	
+});
+var word;
+
+
+
+var color = d3.scale.category20c();
+
+var treemap = d3.layout.treemap()
+    .size([document.getElementById("tree").clientWidth,screen.availHeight-200])
+.padding(24).sort(function(a,b){return a.value - b.value;})
+    .value(function(d) { return d.size; });
+
+var div = d3.select("#tree");
+
+
+function makeTree(data){
+	    	var root={name:"letters",children:Object.keys(data).map(function(v){return{"name":v,"size":data[v]}}).filter(function(v){return v.size>parseInt($("#MinOcc").val(),10) && $("#StopWords").val().split(",").map(function(v){return v.trim();}).concat([""," "]).indexOf(v.name)===-1;})};
+  var node = div.datum(root).selectAll(".node")
+      .data(treemap.nodes);
+     node.enter().append("div")
+      .attr("class", "node")
+       .call(position)
+      .style("background", function(d) { return !d.children ? color(d.name) : null; })
+      .text(function(d) { return d.children ? null : d.name; });
+      node.call(position).style("background", function(d) { return !d.children ? color(d.size) : null; })
+      .text(function(d) { return (d.children)? null :(d.size===1?d.name: "'"+d.name+"': "+d.size); });
+node.exit().remove();
+
+}
+function position() {
+  this.style("left", function(d) { return d.x + "px"; })
+      .style("top", function(d) { return d.y + "px"; })
+      .style("width", function(d) { return Math.max(0, d.dx - 1) + "px"; })
+      .style("height", function(d) { return Math.max(0, d.dy - 1) + "px"; });
+}
+$("#prefill").on("change",function(){
+var val = $("#prefill").val();
+if(val){
+	d3.text(val,function(err,data){
+		$("#textStuff").html(data);
+	})
+}
+});
+</script>
