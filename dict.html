@@ -95,9 +95,9 @@ var red = function(a,b){
 	return out;
 };
 var callback = function(d){
-	$("#main").html(Object.keys(d).map(function(v){
-		return "'"+v+"': "+d[v];
-	}).join("<br/>"));
+	$("#main").html('<table class="table table-striped table-bordered table-hover"><thead><th>character</th><th>count</th></thead><tbody>'+Object.keys(d).map(function(v){
+		return "<tr><td>'"+v+"'</td><td>"+d[v]+"</td></tr>";
+	}).join("")+'</tbody></table>');
 };
 $("#goButton").on("click",function(e){
 	e.preventDefault();
