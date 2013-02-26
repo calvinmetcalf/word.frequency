@@ -43,7 +43,9 @@
 
 <script src="mapreduce.js"></script>
 <script>
+	var mr,timer,od,ii=0;
 function backgroundAjax(url,callback,after,notjson){
+
 var worker = new Worker(URL.createObjectURL(new Blob(['\
 var ajax = function (url, cb) {\
     var request = new XMLHttpRequest();\
@@ -95,14 +97,21 @@ var red = function(a,b){
 	return out;
 };
 var callback = function(d){
-	$("#main").html('<table class="table table-striped table-bordered table-hover"><thead><th>character</th><th>count</th></thead><tbody>'+Object.keys(d).map(function(v){
+	if(d[" "]===od && ii===1){
+	clearInterval(timer);
+	return;
+	}
+	ii=1;
+	od=d[" "];
+	$("#main").html('<table class="table table-striped table-bordered table-hover"><thead><th>character</th><th>count</th></thead><tbody>'+Object.keys(d).slice().sort(function(a,b){return d[b]-d[a];}).map(function(v){
 		return "<tr><td>'"+v+"'</td><td>"+d[v]+"</td></tr>";
 	}).join("")+'</tbody></table>');
 };
 $("#goButton").on("click",function(e){
 	e.preventDefault();
 	backgroundAjax("dictionary.txt",function(d){
-mapReduce(4).map(letters).reduce(red).data(d).callback(callback);
+mr = mapReduce(4).map(letters).reduce(red).data(d).callback(callback);
+timer=setInterval(function(){mr.fetch();},500);
 },function(v){return v.split("\n").filter(function(v){return v.trim()!==""});},true)
 });
 
