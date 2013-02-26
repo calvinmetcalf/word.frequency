@@ -109,6 +109,7 @@ var callback = function(d){
 };
 $("#goButton").on("click",function(e){
 	e.preventDefault();
+	$("#main").html('<button class="btn btn-success btn-large disabled" type="button" id="goButton">Loading the dictionary</button>')
 	backgroundAjax("dictionary.txt",function(d){
 mr = mapReduce(4).map(letters).reduce(red).data(d).callback(callback);
 timer=setInterval(function(){mr.fetch();},500);
